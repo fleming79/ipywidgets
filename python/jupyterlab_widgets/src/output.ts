@@ -3,17 +3,19 @@
 
 import * as outputBase from '@jupyter-widgets/output';
 
-import { LabWidgetManager, WidgetManager } from './manager';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+
+import { KernelWidgetManager } from './manager';
 
 import {
   OutputArea,
-  SimplifiedOutputArea,
   OutputAreaModel,
+  SimplifiedOutputArea,
 } from '@jupyterlab/outputarea';
 
 import * as nbformat from '@jupyterlab/nbformat';
 
-import { KernelMessage, Session } from '@jupyterlab/services';
+import { KernelMessage } from '@jupyterlab/services';
 
 import $ from 'jquery';
 
@@ -35,37 +37,16 @@ export class OutputModel extends outputBase.OutputModel {
       return false;
     };
 
-    // if the context is available, react on kernel changes
-    if (this.widget_manager instanceof WidgetManager) {
-      this.widget_manager.context.sessionContext.kernelChanged.connect(
-        (sender, args) => {
-          this._handleKernelChanged(args);
-        }
-      );
-    }
     this.listenTo(this, 'change:msg_id', this.reset_msg_id);
     this.listenTo(this, 'change:outputs', this.setOutputs);
     this.setOutputs();
   }
 
   /**
-   * Register a new kernel
-   */
-  _handleKernelChanged({
-    oldValue,
-  }: Session.ISessionConnection.IKernelChangedArgs): void {
-    const msgId = this.get('msg_id');
-    if (msgId && oldValue) {
-      oldValue.removeMessageHook(msgId, this._msgHook);
-      this.set('msg_id', null);
-    }
-  }
-
-  /**
    * Reset the message id.
    */
   reset_msg_id(): void {
-    const kernel = this.widget_manager.kernel;
+    const kernel = (this.widget_manager as KernelWidgetManager).kernel;
     const msgId = this.get('msg_id');
     const oldMsgId = this.previous('msg_id');
 
@@ -119,17 +100,16 @@ export class OutputModel extends outputBase.OutputModel {
     }
   }
 
-  widget_manager: LabWidgetManager;
-
   private _msgHook: (msg: KernelMessage.IIOPubMessage) => boolean;
   private _outputs: OutputAreaModel;
+  static rendermime: IRenderMimeRegistry;
 }
 
 export class OutputView extends outputBase.OutputView {
   _createElement(tagName: string): HTMLElement {
     this.luminoWidget = new JupyterOutputArea({
       view: this,
-      rendermime: this.model.widget_manager.rendermime,
+      rendermime: OutputModel.rendermime,
       contentFactory: OutputArea.defaultContentFactory,
       model: this.model.outputs,
       promptOverlay: false,
