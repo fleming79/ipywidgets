@@ -501,8 +501,10 @@ class Widget(LoggingHasTraits):
 
     def __del__(self):
         """Object disposal"""
-        self.close()
-
+        try:
+            self.close()
+        except Exception:
+            pass
     #-------------------------------------------------------------------------
     # Properties
     #-------------------------------------------------------------------------
