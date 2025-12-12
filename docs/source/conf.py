@@ -39,6 +39,13 @@ def on_config_inited(*args):
     run_if_needed(["jupyter", "lite", "build"], LITE)
 
 def setup(app):
+    # Enable Plausible.io stats
+    app.add_js_file("https://plausible.io/js/pa-EonBdQ5HHvW-hAayNOJ9_.js", loading_method="async")
+    app.add_js_file(
+        filename=None,
+        body="window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({hashBasedRouting:true})",
+    )
+
     app.connect("config-inited", on_config_inited)
     app.add_css_file("https://docs.jupyter.org/en/latest/_static/jupyter.css")
 
@@ -157,7 +164,6 @@ templates_path = ["_templates"]
 htmlhelp_basename = 'ipywidgetsdoc'
 
 html_theme_options = {
-    "announcement": "🚀 Join us in San Diego · JupyterCon 2025 · Nov 4-5 · <a href=\"https://events.linuxfoundation.org/jupytercon/program/schedule/?ajs_aid=53afb00d-be65-4a99-9112-28cdaac99463\">SCHEDULE</a> · <a href=\"https://events.linuxfoundation.org/jupytercon/register/?ajs_aid=53afb00d-be65-4a99-9112-28cdaac99463\">REGISTER NOW</a>",
     "icon_links": [
         {
             "name": "PyPI",
